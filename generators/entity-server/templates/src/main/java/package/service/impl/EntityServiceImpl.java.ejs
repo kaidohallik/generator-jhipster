@@ -81,7 +81,7 @@ import java.util.UUID;
 <%_ if (fieldsContainNoOwnerOneToOne === true || (pagination === 'no' && ((searchEngine !== false) || dto === 'mapstruct'))) { _%>
 import java.util.stream.Collectors;
 <%_ } _%>
-<%_ if (fieldsContainNoOwnerOneToOne === true || (pagination === 'no' && searchEngine === 'elasticsearch')) { _%>
+<%_ if (searchEngine === 'elasticsearch' && !reactive) { _%>
 import java.util.stream.StreamSupport;
 <%_ } _%>
 <%_ if (searchEngine === 'elasticsearch') { _%>

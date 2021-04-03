@@ -533,6 +533,9 @@ class EntityGenerator extends BaseBlueprintGenerator {
           otherEntity.otherRelationships = otherEntity.otherRelationships || [];
           otherEntity.otherRelationships.push(relationship);
 
+          relationship.entityName = this.context.name;
+          relationship.entityTableName = this.context.entityTableName;
+
           if (
             relationship.unidirectional &&
             (relationship.relationshipType === 'many-to-many' ||
@@ -624,6 +627,12 @@ class EntityGenerator extends BaseBlueprintGenerator {
             this.context.differentRelationships[entityType] = [];
           }
           this.context.differentRelationships[entityType].push(relationship);
+        });
+        // add unidirectional one-to-one cases
+        this.context.otherRelationships.forEach(relationship => {
+          if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide) {
+            this.context.fieldsContainNoOwnerOneToOne = true;
+          }
         });
       },
 

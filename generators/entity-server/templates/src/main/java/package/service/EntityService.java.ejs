@@ -80,13 +80,14 @@ public interface <%= entityClass %>Service {
      * @return the list of entities.
      */
     <% if (pagination !== 'no') { %><%= pageOrFlux %><<%= instanceType %><% } else { %><%= listOrFlux %><<%= instanceType %><% } %>> findAll(<% if (pagination !== 'no') { %>Pageable pageable<% } %>);
-<% for (const relationship of relationships) { if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide !== true) { -%>
+<% for (const relationship of otherRelationships) { if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide === true) {
+    const relationshipNameCapitalized = _.upperFirst(relationship.otherEntityRelationshipName); -%>
     /**
-     * Get all the <%= restClass %> where <%= relationship.relationshipNameCapitalized %> is {@code null}.
+     * Get all the <%= restClass %> where <%= relationshipNameCapitalized %> is {@code null}.
      *
      * @return the {@link <%= listOrFlux %>} of entities.
      */
-    <%= listOrFlux %><<%= instanceType %>> findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull();
+    <%= listOrFlux %><<%= instanceType %>> findAllWhere<%= relationshipNameCapitalized %>IsNull();
 <%_ } } _%>
 
     <%_ if (relationshipsContainEagerLoad) { _%>

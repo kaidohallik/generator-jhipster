@@ -16,6 +16,9 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -%>
+<%_
+const persistClassLowerCase = _.lowerFirst(persistClass);
+_%>
 package <%= packageName %>.repository;
 
 import <%= packageName %>.domain.<%= persistClass %>;
@@ -49,7 +52,7 @@ import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.stereotype.Repository;
 <%_
 if (databaseType === 'sql' || databaseType === 'mongodb' || databaseType === 'couchbase') {
-    let importList = fieldsContainOwnerManyToMany;
+    let importList = fieldsContainOwnerManyToMany || fieldsContainNoOwnerOneToOne;
     for (r of relationships) {
         if (r.relationshipType === 'many-to-one' && r.otherEntityName === 'user') {
             importList = true;
@@ -114,6 +117,21 @@ public interface <%= entityClass %>Repository extends <% if (databaseType === 's
 
     @Query("<%- (databaseType === 'mongodb') ? "{'id': ?0}" : "#{#n1ql.selectEntity} USE KEYS $1 WHERE #{#n1ql.filter}" %>")
     Optional<<%= persistClass %>> findOneWithEagerRelationships(<%= primaryKey.type %> id);
+    <%_
+        }
+    } _%>
+
+    <%_ for (const relationship of otherRelationships) {
+        if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide === true) {
+            const otherEntityName = relationship.entityName;
+            const otherEntityNameLowerCase = _.lowerFirst(otherEntityName);
+            const otherEntityRelationshipName = relationship.relationshipName;
+            const relationshipNameCapitalized = _.upperFirst(relationship.otherEntityRelationshipName);
+    _%>
+    @Query(
+        "select <%= persistClassLowerCase %> from <%= persistClass %> <%= persistClassLowerCase %> where <%= persistClassLowerCase %> not in (select <%= otherEntityNameLowerCase %>.<%= otherEntityRelationshipName %> from <%= otherEntityName %> <%= otherEntityNameLowerCase %>)"
+    )
+    List<<%= persistClass %>> findAllWhere<%= relationshipNameCapitalized %>IsNull();
     <%_
         }
     } _%>

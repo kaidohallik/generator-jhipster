@@ -126,15 +126,22 @@ public interface <%= entityClass %>Repository extends <% if (databaseType === 's
 
     @Query("SELECT entity.* FROM <%= entityTableName %> entity JOIN <%= relationship.joinTable.name %> joinTable ON entity.id = joinTable.<%= getColumnName(name) %>_id WHERE joinTable.<%= getColumnName(relationshipName) %>_id = :id")
     Flux<<%= persistClass %>> findBy<%= relationship.relationshipNameCapitalized %>(<%= primaryKey.type %> id);
-              <%_ } else if (relationshipType === 'one-to-one' && ownerSide === false) {
-                  let otherEntityRelationshipName = relationship.otherEntityRelationshipName;
-                  let otherEntityTableName = relationship.otherEntityTableName;
-                  _%>
-
-    @Query("SELECT * FROM <%= entityTableName %> entity WHERE entity.id not in (select <%= getColumnName(otherEntityRelationshipName) %>_id from <%= otherEntityTableName %>)")
-    Flux<<%= persistClass %>> findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull();
               <%_ } _%>
         <%_ } _%>
+        <%_
+            for (const relationship of otherRelationships) {
+                if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide === true) {
+                    const otherEntityRelationshipName = relationship.relationshipName;
+                    const otherEntityTableName = relationship.entityTableName;
+                    const relationshipNameCapitalized = _.upperFirst(relationship.otherEntityRelationshipName);
+        _%>
+
+    @Query("SELECT * FROM <%= entityTableName %> entity WHERE entity.id not in (select <%= getColumnName(otherEntityRelationshipName) %>_id from <%= otherEntityTableName %> where <%= getColumnName(otherEntityRelationshipName) %>_id is not null)")
+    Flux<<%= persistClass %>> findAllWhere<%= relationshipNameCapitalized %>IsNull();
+        <%_
+                }
+            }
+        _%>
 
     // just to avoid having unambigous methods
     @Override

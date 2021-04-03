@@ -21,22 +21,23 @@ const instanceType = restClass;
 const mapper = entityInstance  + 'Mapper';
 const entityToDtoReference = mapper + '::' + 'toDto';
 const reactiveSql = (databaseType === 'sql' && reactive);
-for (const relationship of relationships) { if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide !== true) { %>
+for (const relationship of otherRelationships) { if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide === true) {
+    const relationshipNameCapitalized = _.upperFirst(relationship.otherEntityRelationshipName); %>
 
     /**
-     *  Get all the <%= entityInstancePlural %> where <%= relationship.relationshipNameCapitalized %> is {@code null}.
+     *  Get all the <%= entityInstancePlural %> where <%= relationshipNameCapitalized %> is {@code null}.
      *  @return the list of entities.
      */<% if (databaseType === 'sql') { %>
     @Transactional(readOnly = true) <% } %>
-    public <%= reactiveSql ? 'Flux' : 'List' %><<%= instanceType %>> findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull() {
-        log.debug("Request to get all <%= entityInstancePlural %> where <%= relationship.relationshipNameCapitalized %> is null");
+    public <%= reactiveSql ? 'Flux' : 'List' %><<%= instanceType %>> findAllWhere<%= relationshipNameCapitalized %>IsNull() {
+        log.debug("Request to get all <%= entityInstancePlural %> where <%= relationshipNameCapitalized %> is null");
         <%_ if (reactiveSql) { _%>
-        return <%= entityInstance %>Repository.findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull()<% if (dto === 'mapstruct') { _%>
+        return <%= entityInstance %>Repository.findAllWhere<%= relationshipNameCapitalized %>IsNull()<% if (dto === 'mapstruct') { _%>
              .map(<%= entityToDtoReference %>)<%_ } _%>;
         <%_ } else { _%>
-        return StreamSupport
-            .stream(<%= entityInstance %>Repository.findAll().spliterator(), false)
-            .filter(<%= entityInstance %> -> <%= entityInstance %>.get<%= relationship.relationshipNameCapitalized %>() == null)
+        return <%= entityInstance %>Repository
+            .findAllWhere<%= relationshipNameCapitalized %>IsNull()
+            .stream()
             <%_ if (dto === 'mapstruct') { _%>
             .map(<%= entityToDtoReference %>)
             .collect(Collectors.toCollection(LinkedList::new));

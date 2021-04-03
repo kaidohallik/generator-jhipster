@@ -124,9 +124,9 @@ import java.util.UUID;
     <%_ if (!viaService) { _%>
 import java.util.stream.Collectors;
     <%_ } _%>
-    <%_ if (databaseType !== 'sql' || !reactive) { _%>
+<%_ } _%>
+<%_ if (searchEngine === 'elasticsearch' && pagination === 'no' && !viaService && !reactive) { _%>
 import java.util.stream.StreamSupport;
-    <%_ } _%>
 <%_ } _%>
 <%_ if (searchEngine === 'elasticsearch' && !reactive) { _%>
 

@@ -30,16 +30,18 @@ if (pagination !== 'no') {
         toResponseEntityPostfix = ', HttpStatus.OK)';
     }
 }
-for (const relationship of relationships) { if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide !== true) { %>
-        if ("<%= relationship.relationshipName.toLowerCase() %>-is-null".equals(filter)) {
-            log.debug("REST request to get all <%= entityClass %>s where <%= relationship.relationshipName %> is null");
+for (const relationship of otherRelationships) { if (relationship.relationshipType === 'one-to-one' && relationship.ownerSide === true) {
+    const relationshipName = relationship.otherEntityRelationshipName;
+    const relationshipNameCapitalized = _.upperFirst(relationshipName);%>
+        if ("<%= relationshipName.toLowerCase() %>-is-null".equals(filter)) {
+            log.debug("REST request to get all <%= entityClass %>s where <%= relationshipName %> is null");
             <%_ if (viaService) { _%>
-            return <%- toResponseEntityPrefix %><%= entityInstance %>Service.findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull()<% if (reactiveSql) { %>.collectList()<% } %><%= toResponseEntityPostfix %>;
+            return <%- toResponseEntityPrefix %><%= entityInstance %>Service.findAllWhere<%= relationshipNameCapitalized %>IsNull()<% if (reactiveSql) { %>.collectList()<% } %><%= toResponseEntityPostfix %>;
             <%_ } else { _%>
-            return <%- toResponseEntityPrefix %><% if (reactiveSql) { %><%= entityInstance %>Repository.findAllWhere<%= relationship.relationshipNameCapitalized %>IsNull()<% if (dto === 'mapstruct') { %>.map(<%= entityToDtoReference %>)<% } %>.collectList()<%= toResponseEntityPostfix %>;
-                <%_ } else { _%>StreamSupport
-                .stream(<%= entityInstance %>Repository.findAll().spliterator(), false)
-                .filter(<%= entityInstance %> -> <%= entityInstance %>.get<%= relationship.relationshipNameCapitalized %>() == null)<% if (dto === 'mapstruct') { %>
+            return <%- toResponseEntityPrefix %><% if (reactiveSql) { %><%= entityInstance %>Repository.findAllWhere<%= relationshipNameCapitalized %>IsNull()<% if (dto === 'mapstruct') { %>.map(<%= entityToDtoReference %>)<% } %>.collectList()<%= toResponseEntityPostfix %>;
+                <%_ } else { _%><%= entityInstance %>Repository
+                .findAllWhere<%= relationshipNameCapitalized %>IsNull()
+                .stream()<% if (dto === 'mapstruct') { %>
                 .map(<%= entityToDtoReference %>)<% } if (pagination !== 'no') { %>
                 .collect(Collectors.toList()), HttpStatus.OK);<% } else { if (dto === 'mapstruct') { %>
                 .collect(Collectors.toCollection(LinkedList::new));<% } else { %>
